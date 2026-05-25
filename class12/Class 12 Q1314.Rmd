@@ -1,0 +1,121 @@
+---
+title: "Class12"
+author: "Rongyu Chen(A17708249)"
+date: "2026-05-11"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Section 1. Proportion of G|G in a population
+
+Downloaded a CSV file from Ensemble < https://uswest.ensembl.org/Homo_sapiens/Variation/Sample?db=cor39975098;v=1s8067378;vdb=variation;vf=88214830#373531_tablePanel >
+Here we read this CSV file
+
+```{r}
+mxl <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head(mxl)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.)
+```
+```{r}
+table(mxl$Genotype..forward.strand.)/nrow(mxl) * 100
+```
+
+Now lets look at a different population. I picked GBR
+
+```{r}
+gbr <- read.csv("373522-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+```
+
+Find proportion of G|G
+```{r}
+round(table(gbr$Genotype..forward.strand.) / nrow(gbr)*100, 2)
+```
+
+This variant that is associated with childhood asthma is more frequent in the GBR population
+than the MKL population.
+Lets now dig into this further.
+
+
+## Section 4: Population Scale Analysis
+One sample is obviously not enough to know what is happening in a population. You are interested in assessing genetic differences on a population scale.
+
+How many samples do we have?
+
+```{r}
+expr <- read.table("rs8067378_ENSG00000172057.6.txt")
+head(expr)
+```
+
+```{r}
+nrow(expr)
+```
+```{r}
+table(expr$geno)
+```
+
+```{r}
+median_expression <- tapply(expr$exp, expr$geno, median)
+print(median_expression)
+```
+The sample sizes for each genotype are A/A: 108, A/G: 233, and G/G: 121. The calculated
+median expression levels show that A/A is 31.25, A/G is 25.06, and G/G is 20.07.
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+
+ggplot(expr) + aes(x=geno, exp, fill=geno) +
+geom_boxplot(notch=TRUE)
+```
+
+The A/A genotype exhibits a noticeably higher median expression level compared to the G/G genotype. This suggests that the SNP does affect the expression of ORMDL3, as the homozygous G/G genotype is associated with reduced expression values relative to A/A.
+So the SNP affects the expression of ORMDL3. Specifically, the G allele is associated with reduced expression of the gene compared to the A allele.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
