@@ -1,0 +1,153 @@
+---
+title: "Machine learning 1"
+author: "Rongyu Chen(A17708249)"
+date: "2026-04-23"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+#First up kmeans()
+
+Demo od using kmeans() function in base R. Frist make up some data with a known structure.
+
+```{r}
+x <- c(rnorm(30,-3),rnorm(30,3))
+x <- cbind(x,y = rev(x))
+x
+plot(x)
+```
+
+Now we have some made up data in 'x'. Let's see how kmeans work with this data.
+
+```{r}
+k<- kmeans(x,centers = 2, nstart=20)
+k
+```
+
+> Q. How many points are in each cluster
+
+```{r}
+k$size
+```
+
+> Q. How we do get to the cluster membership/assignment.
+
+```{r}
+k$cluster
+```
+
+> Q. How about cluster center?
+
+```{r}
+k$centers
+```
+
+Now we got to the main results. Let's use them to plot data with the kmeans result
+
+```{r}
+plot(x,col=k$cluster)
+points(k$centers,col="blue",pch=15, cex=1)
+```
+K-means clustering is widely used because it is fast and relatively simple: it takes numeric data as input and returns a vector indicating cluster membership. However, a key limitation is that we must specify the number of clusters in advance when using kmeans().
+
+```{r}
+k4 <- kmeans(x, centers = 4)
+plot(x, col=k4$cluster)
+points(k4$centers, pch=15)
+```
+
+Scree plot to pick k centers value brute-force
+```{r}
+k1 <- kmeans(x, centers=1)
+k2 <- kmeans(x, centers=2)
+k3 <- kmeans(x, centers=3)
+k4 <- kmeans(x, centers=4)
+k5 <- kmeans(x, centers=5)
+```
+
+```{r}
+z <- c(k1$tot.withinss,
+k2$tot.withinss,
+k3$tot.withinss,
+k4$tot.withinss)
+plot(z, typ="b")
+```
+
+```{r}
+n <- NULL
+for(i in 1:5){
+n <- c(n, kmeans(x, centers=i)$tot.withinss)
+}
+plot(n, type="b")
+```
+
+
+## Now for hclust() - Hierarchical Clustering
+
+We will cluster the same data 'x' with the 'hclust()'. In this case 'hclust()' requires a distance matrix as input.
+
+```{r}
+hclust <- hclust(dist(x))
+hclust
+```
+
+```{r}
+plot(hclust)
+
+```
+
+To get our cluster membership victer we need to "cut" the tree with the 'cutree()'
+
+```{r}
+grps <- cutree(hclust,h = 8)
+grps
+```
+
+Now plot the data with the hclust() results.
+
+```{r}
+plot(x,col=grps)
+```
+
+# Principal Component Analysis (PCA)
+
+## PCA of UK food data
+
+Read data from website and try a few visualizations.
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url,row.names=1)
+x
+```
+
+```{r}
+cols <- rainbow(nrow(x))
+barplot(as.matrix(x),col=cols)
+```
+There is one plot that can be useful for small datasets:
+```{r}
+pairs(x, col=rainbow(nrow(x)), pch=16)
+```
+
+# PCA to the rescue
+The main function for performing PCA in base R is prcomp(). Here, I will transpose the data so that the “foods” are arranged in the columns.
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+```{r}
+cols<- c("orange", "red", "blue", "darkgreen")
+plot(pca$x[,1],pca$x[,2], col=cols, pch=19)
+```
+```{r}
+library(ggplot2)
+ggplot(pca$x) +
+aes(PC1, PC2) +
+geom_point(col=cols, size=2)
+```
+```{r}
+pca$rotation
+```
+PCA looks spuer useful.

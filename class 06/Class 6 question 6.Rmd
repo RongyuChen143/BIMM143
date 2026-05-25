@@ -1,0 +1,76 @@
+---
+title: "Lecture 6 Question 6"
+author: "Rongyu Chen(A17708249)"
+date: "2026-04-22"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+We need a wrapper for bio3d that (1) retrieves one or more PDB files, (2) filters each to a specified chain and atom type, (3) generates a B-factor profile plot for the selected structure, and (4) returns the plotted output.
+
+## First install the package
+
+It provides functions to read PDB files (read.pdb()), subset them (trim.pdb()), and visualize B-factor profiles (plotb3()).
+
+```{r}
+install.packages("bio3d", repos = "<https://cloud.r-project.org>") # install.packages("bio3d")
+
+library(bio3d)
+```
+
+Generalizing B-factor analysis to work with any collection of PDB structures, allowing B-factors to be plotted for a single selected protein from a given set of PDB IDs.
+
+```{r}
+plot_protein <- function(pdb_ids, which = 1, chain = "A", elety = "CA") {
+  stopifnot(length(pdb_ids) > 0)  # Require at least one PDB ID
+  stopifnot(which >= 1 && which <= length(pdb_ids))  # Validate index
+  
+  pdbs <- lapply(pdb_ids, read.pdb)  # Load PDB files from RCSB
+  
+  trims <- lapply(pdbs, function(p) {
+    trim.pdb(p, chain = chain, elety = elety)
+    # Retain only the specified chain and atom type (e.g., CA)
+  })
+  
+  sel <- trims[[which]]        # Select the desired structure
+  b <- sel$atom$b              # Extract B-factor values
+  
+  plotb3(
+    b,                         # Plot B-factors vs residue index
+    sse = sel,                 # Add secondary structure annotation
+    typ = "l",                 # Line plot
+    ylab = "Bfactor",          # Y-axis label
+    xlab = "Residue index"     # X-axis label
+  )
+  
+  title(main = paste0(
+    "PDB: ", pdb_ids[which],
+    " | chain=", chain,
+    " | elety=", elety
+  ))
+  
+  invisible(list(
+    selected_pdb = pdb_ids[which],  # Selected PDB ID
+    b = b,                          # B-factor vector
+    trimmed = sel                   # Trimmed PDB object
+  ))
+}
+```
+
+```{r}
+ids <- c("4AKE","1AKE","1E4Y") # Define the set of PDB IDs to analyze
+plot_protein(ids, which = 1) # Plot the first protein’s B-factors
+```
+
+```{r}
+plot_protein(ids, which = 2) 
+# Plot the second protein’s B-factors
+```
+
+```{r}
+
+plot_protein(ids, which = 3) # Plot the third protein’s B-factors
+```
+
+R uses chain = "A" and elety = "CA" as default arguments, so you only need to specify them if you want different values.
